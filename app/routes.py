@@ -6,7 +6,7 @@ from flask_jwt_extended import (
 from app import db
 from app.models import (
     User, OpenDay, Event, Building, SubjectArea, 
-    Registration, UserAgenda, Feedback, Course
+    Registration, UserAgenda, Feedback, Course, FAQ
 )
 from app.utils import validate_email, validate_password
 from datetime import datetime, time
@@ -516,4 +516,83 @@ def submit_contact_form():
             }
         }), 201
     except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ==================== FAQ ROUTES ====================
+
+@api_bp.route('/faqs', methods=['GET'])
+def get_faqs():
+    faqs = FAQ.query.order_by(FAQ.created_at.desc()).all()
+    return jsonify({'faqs': [faq.to_dict() for faq in faqs]}), 200
+
+@api_bp.route('/faqs/<int:faq_id>', methods=['GET'])
+def get_faq(faq_id):
+    faq = FAQ.query.get(faq_id)
+    if not faq:
+        return jsonify({'error': 'FAQ not found'}), 404
+    return jsonify({'faq': faq.to_dict()}), 200
+
+@api_bp.route('/faqs', methods=['POST'])
+@jwt_required()
+def create_faq():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user or not user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    data = request.get_json()
+    if not all(k in data for k in ['question', 'answer']):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    faq = FAQ(question=data['question'], answer=data['answer'], category=data.get('category'))
+    try:
+        db.session.add(faq)
+        db.session.commit()
+        return jsonify({'message': 'FAQ created successfully', 'faq': faq.to_dict()}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@api_bp.route('/faqs/<int:faq_id>', methods=['PUT'])
+@jwt_required()
+def update_faq(faq_id):
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user or not user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    faq = FAQ.query.get(faq_id)
+    if not faq:
+        return jsonify({'error': 'FAQ not found'}), 404
+    
+    data = request.get_json()
+    faq.question = data.get('question', faq.question)
+    faq.answer = data.get('answer', faq.answer)
+    faq.category = data.get('category', faq.category)
+    
+    try:
+        db.session.commit()
+        return jsonify({'message': 'FAQ updated successfully', 'faq': faq.to_dict()}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@api_bp.route('/faqs/<int:faq_id>', methods=['DELETE'])
+@jwt_required()
+def delete_faq(faq_id):
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user or not user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    faq = FAQ.query.get(faq_id)
+    if not faq:
+        return jsonify({'error': 'FAQ not found'}), 404
+    
+    try:
+        db.session.delete(faq)
+        db.session.commit()
+        return jsonify({'message': 'FAQ deleted successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
         return jsonify({'error': str(e)}), 500

@@ -244,3 +244,20 @@ class Course(db.Model):
             'ucas_code': self.ucas_code,
             'level': self.level
         }
+
+# FAQs
+class FAQ(db.Model):
+    __tablename__ = 'faqs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    question = db.Column(db.Text, nullable=False)
+    answer = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'question': self.question,
+            'category': self.category,
+        }
