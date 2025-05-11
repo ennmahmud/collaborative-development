@@ -6,8 +6,10 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key'
+    #SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+       # 'postgresql://postgres:collabdev212@localhost:5432/wlvapp'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'postgresql://postgres:securepassword@localhost:5432/wlvapp'
+    'sqlite:///wlvapp.db'  # This creates a file named wlvapp.db in your project directory
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'jwt-dev-key'
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)

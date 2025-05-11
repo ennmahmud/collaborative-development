@@ -24,7 +24,7 @@ def create_app(config_class=Config):
     bcrypt.init_app(app)  # Initialize bcrypt
     
     # Enable CORS
-    CORS(app)
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
     
     # Register API blueprint
     from app.api import api_bp
