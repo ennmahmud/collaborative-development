@@ -1,7 +1,6 @@
 from app import db, bcrypt
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import ARRAY
-import json
 
 
 # Users
@@ -204,8 +203,7 @@ class Feedback(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     open_day_id = db.Column(db.Integer, db.ForeignKey('open_days.id'))
     rating = db.Column(db.Integer)
-    useful_aspects = db.Column(db.Text)
-    #useful_aspects = db.Column(ARRAY(db.String))
+    useful_aspects = db.Column(ARRAY(db.String))
     improvement_suggestions = db.Column(db.Text)
     additional_comments = db.Column(db.Text)
     submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -213,40 +211,18 @@ class Feedback(db.Model):
     # Relationships
     user = db.relationship('User', backref='feedback')
     open_day = db.relationship('OpenDay', backref='feedback')
-<<<<<<< HEAD
-    
-    #def to_dict(self):
-        #return {
-        #    'id': self.id,
-         #   'user_id': self.user_id,
-          #  'open_day_id': self.open_day_id,
-           # 'rating': self.rating,
-            #'useful_aspects': self.useful_aspects,
-            #'improvement_suggestions': self.improvement_suggestions,
-            #'additional_comments': self.additional_comments,
-            #'submitted_at': self.submitted_at.isoformat() if self.submitted_at else None
-        #}
-=======
 
->>>>>>> 72389a80a0e3415bcace6a7a989abe794bfc356e
     def to_dict(self):
-            aspects = []
-            if self.useful_aspects:
-                try:
-                    aspects = json.loads(self.useful_aspects)
-                except:
-                    aspects = []
-                    
-            return {
-                'id': self.id,
-                'user_id': self.user_id,
-                'open_day_id': self.open_day_id,
-                'rating': self.rating,
-                'useful_aspects': aspects,
-                'improvement_suggestions': self.improvement_suggestions,
-                'additional_comments': self.additional_comments,
-                'submitted_at': self.submitted_at.isoformat() if self.submitted_at else None
-            }
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'open_day_id': self.open_day_id,
+            'rating': self.rating,
+            'useful_aspects': self.useful_aspects,
+            'improvement_suggestions': self.improvement_suggestions,
+            'additional_comments': self.additional_comments,
+            'submitted_at': self.submitted_at.isoformat() if self.submitted_at else None
+        }
 
 
 # Courses
