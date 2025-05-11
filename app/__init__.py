@@ -5,17 +5,28 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt  # Add this import
 from config import Config
+<<<<<<< HEAD
 import os
+=======
+from flask_dotenv import DotEnv
+>>>>>>> 72389a80a0e3415bcace6a7a989abe794bfc356e
 
 # Create extensions
 db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
+<<<<<<< HEAD
 bcrypt = Bcrypt()  # Now this will work correctly
+=======
+bcrypt = Bcrypt()
+env = DotEnv()
+
+>>>>>>> 72389a80a0e3415bcace6a7a989abe794bfc356e
 
 def create_app(config_class=Config):
     app = Flask(__name__, static_folder='static')
     app.config.from_object(config_class)
+<<<<<<< HEAD
     
     # Initialize extensions
     db.init_app(app)
@@ -86,3 +97,28 @@ def create_app(config_class=Config):
         app.logger.info('University of Wolverhampton Open Day App startup')
     
     return app
+=======
+    env.init_app(app)
+
+    # Initialize Flask extensions
+    db.init_app(app)
+    migrate.init_app(app, db)
+    jwt.init_app(app)
+    bcrypt.init_app(app)
+    CORS(app)
+
+    # Register blueprints
+    from app.routes import api_bp
+    app.register_blueprint(api_bp, url_prefix='/api')
+
+    # Error handlers
+    @app.errorhandler(404)
+    def not_found(error):
+        return {"error": "Not found"}, 404
+
+    @app.errorhandler(500)
+    def server_error(error):
+        return {"error": "Internal server error"}, 500
+
+    return app
+>>>>>>> 72389a80a0e3415bcace6a7a989abe794bfc356e
