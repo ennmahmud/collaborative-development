@@ -28,7 +28,7 @@ def create_app(config_class=Config):
     CORS(app)
 
     # Register blueprints
-    from app.routes import api_bp
+    from app.api import api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
 
     # Error handlers
