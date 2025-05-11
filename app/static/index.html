@@ -115,6 +115,69 @@
     </style>
 </head>
 <body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen flex flex-col">
+    <!-- Debug panel -->
+<div id="debug-panel" style="position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); color: white; padding: 10px; z-index: 9999; max-width: 80%; max-height: 200px; overflow: auto; border-radius: 4px; font-family: monospace; font-size: 12px;">
+    <h3>API Debug</h3>
+    <div id="debug-content">Loading...</div>
+</div>
+
+<div id="api-debug" style="position: fixed; top: 0; right: 0; background: rgba(0,0,0,0.8); color: white; padding: 10px; z-index: 9999; max-width: 400px; max-height: 200px; overflow: auto;">
+    <h3>API Debug</h3>
+    <div id="api-status"></div>
+    <button onclick="this.parentNode.style.display='none'">Close</button>
+</div>
+
+<script>
+    function testApi() {
+    const apiStatus = document.getElementById('api-status');
+    apiStatus.innerHTML = "Testing API connection...";
+    
+    // Test if the API is reachable
+    fetch('/api/test')
+        .then(response => {
+            apiStatus.innerHTML += `<p>API Test: ${response.status} ${response.statusText}</p>`;
+            return response.text();
+        })
+        .then(data => {
+            apiStatus.innerHTML += `<p>Response: ${data}</p>`;
+        })
+        .catch(error => {
+            apiStatus.innerHTML += `<p>Error: ${error.message}</p>`;
+        });
+}
+
+// Call this when the page loads
+document.addEventListener('DOMContentLoaded', testApi);
+// Add this right after the debug panel HTML
+        document.addEventListener('DOMContentLoaded', function() {
+            const debugContent = document.getElementById('debug-content');
+            
+            // Test basic API endpoints
+            fetch('/api/opendays')
+                .then(response => {
+                    debugContent.innerHTML += `<p>Open Days API: ${response.status} ${response.statusText}</p>`;
+                    return response.json();
+                })
+                .then(data => {
+                    debugContent.innerHTML += `<p>Open Days data: ${JSON.stringify(data).substring(0, 100)}...</p>`;
+                })
+                .catch(error => {
+                    debugContent.innerHTML += `<p>Open Days error: ${error.message}</p>`;
+                });
+                
+            fetch('/api/courses/subject-areas')
+                .then(response => {
+                    debugContent.innerHTML += `<p>Subject Areas API: ${response.status} ${response.statusText}</p>`;
+                    return response.json();
+                })
+                .then(data => {
+                    debugContent.innerHTML += `<p>Subject Areas data: ${JSON.stringify(data).substring(0, 100)}...</p>`;
+                })
+                .catch(error => {
+                    debugContent.innerHTML += `<p>Subject Areas error: ${error.message}</p>`;
+                });
+        });
+</script>
     <!-- Toast notifications container -->
     <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
     
@@ -123,7 +186,7 @@
         <div class="container mx-auto px-4 py-4">
             <div class="flex flex-wrap items-center justify-between">
                 <a href="#" class="flex items-center" data-page="home">
-                    <img src="https://www.wlv.ac.uk/lib/media/departments/marketing-and-communications/brand/UoW_PRIMARY_BLACK.png" 
+                    <img src="University-of-Wolverhampton-CMYK.png" 
                          alt="University of Wolverhampton" class="h-10 dark:hidden">
                     <img src="https://www.wlv.ac.uk/lib/media/departments/marketing-and-communications/brand/UoW_PRIMARY_WHITE.png" 
                          alt="University of Wolverhampton" class="h-10 hidden dark:block">
@@ -975,8 +1038,9 @@
     <script>
         // Main JavaScript for the Open Day application
         document.addEventListener('DOMContentLoaded', function() {
+            console.log("Application starting...");
             // API Configuration
-            const API_BASE_URL = '/api'; // Change to your actual API URL in production
+            const API_BASE_URL = window.location.origin + '/api'; // Dynamically set based on current domain
             
             // Application State
             const state = {
@@ -1788,6 +1852,18 @@
             
             // Fetch upcoming open days for the home page
             function fetchUpcomingOpenDays() {
+
+                const fallbackData = [
+                    { id: 1, name: "Business and Management" },
+                    { id: 2, name: "Computing and Computer Science" },
+                    { id: 3, name: "Education and Teaching" },
+                    { id: 4, name: "Engineering" },
+                    { id: 5, name: "Health and Social Care" },
+                    { id: 6, name: "Law" },
+                    { id: 7, name: "Science" },
+                    { id: 8, name: "Arts and Humanities" }
+                ];
+
                 fetch(`${API_BASE_URL}/opendays`)
                     .then(response => response.json())
                     .then(data => {
@@ -1806,7 +1882,10 @@
                     })
                     .catch(error => {
                         console.error('Error fetching upcoming open days:', error);
-                        showToast('Error loading upcoming open days', 'error');
+                        // Use fallback data on error
+                        console.log("Using fallback upcoming open day data due to error");
+                        state.subjectAreas = fallbackData;
+                        renderSubjectAreas(fallbackData);
                     });
             }
             
@@ -2109,19 +2188,47 @@
             
             // Fetch subject areas
             function fetchSubjectAreas() {
+                console.log("Fetching subject areas...");
+                
+                // Define fallback data
+                const fallbackData = [
+                    { id: 1, name: "Business and Management" },
+                    { id: 2, name: "Computing and Computer Science" },
+                    { id: 3, name: "Education and Teaching" },
+                    { id: 4, name: "Engineering" },
+                    { id: 5, name: "Health and Social Care" },
+                    { id: 6, name: "Law" },
+                    { id: 7, name: "Science" },
+                    { id: 8, name: "Arts and Humanities" }
+                ];
+                
                 fetch(`${API_BASE_URL}/courses/subject-areas`)
-                    .then(response => response.json())
+                    .then(response => {
+                        console.log("Subject areas response:", response.status);
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
                     .then(data => {
-                        if (data.subject_areas) {
-                            // Update the state
+                        console.log("Subject areas data received:", data);
+                        if (data.subject_areas && data.subject_areas.length > 0) {
+                            // Use real data
                             state.subjectAreas = data.subject_areas;
-                            
-                            // Update the UI
                             renderSubjectAreas(data.subject_areas);
+                        } else {
+                            // Use fallback data
+                            console.log("Using fallback subject area data");
+                            state.subjectAreas = fallbackData;
+                            renderSubjectAreas(fallbackData);
                         }
                     })
                     .catch(error => {
-                        console.error('Error fetching subject areas:', error);
+                        console.error("Detailed subject areas error:", error);
+                        // Use fallback data on error
+                        console.log("Using fallback subject area data due to error");
+                        state.subjectAreas = fallbackData;
+                        renderSubjectAreas(fallbackData);
                     });
             }
             

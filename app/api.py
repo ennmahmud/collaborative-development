@@ -104,12 +104,16 @@ def get_user():
 
 # ==================== OPEN DAYS ROUTES ====================
 
-@api_bp.route('/opendays', methods=['GET'])
+@api_bp.route('/opendays')
 def get_open_days():
-    open_days = OpenDay.query.order_by(OpenDay.event_date).all()
-    return jsonify({
-        'open_days': [open_day.to_dict() for open_day in open_days]
-    }), 200
+    try:
+        open_days = OpenDay.query.order_by(OpenDay.event_date).all()
+        return jsonify({
+            'open_days': [open_day.to_dict() for open_day in open_days]
+        }), 200
+    except Exception as e:
+        print(f"Error in get_open_days: {str(e)}")  # Add logging
+        return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/opendays/<int:open_day_id>', methods=['GET'])
 def get_open_day(open_day_id):
@@ -517,3 +521,11 @@ def submit_contact_form():
         }), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+@api_bp.route('/test')
+def test_api():
+    """Test endpoint to verify API is working"""
+    return jsonify({
+        "status": "success",
+        "message": "API is working correctly"
+    })

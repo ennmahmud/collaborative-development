@@ -1,8 +1,9 @@
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from flask_bcrypt import Bcrypt  # Add this import
 from config import Config
 import os
 
@@ -10,6 +11,7 @@ import os
 db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
+bcrypt = Bcrypt()  # Now this will work correctly
 
 def create_app(config_class=Config):
     app = Flask(__name__, static_folder='static')
@@ -19,6 +21,7 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
+    bcrypt.init_app(app)  # Initialize bcrypt
     
     # Enable CORS
     CORS(app)
@@ -83,6 +86,3 @@ def create_app(config_class=Config):
         app.logger.info('University of Wolverhampton Open Day App startup')
     
     return app
-
-# Import this here to avoid circular imports
-from flask import jsonify, request
